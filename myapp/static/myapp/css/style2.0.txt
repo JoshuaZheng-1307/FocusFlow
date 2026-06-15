@@ -1,0 +1,246 @@
+/* =========================================
+   1. 全局变量定义 (统一接口)
+   这里定义了所有颜色的“默认值”（即日间模式）
+   ========================================= */
+:root {
+    /* --- 基础颜色 --- */
+    --primary-color: #007aff;      /* Apple Blue */
+    --accent-hover: #005bb5;       /* 深蓝悬停 */
+
+    /* --- 动态背景与文字 (关键！) --- */
+    --bg-color: #f5f5f7;           /* 页面背景：浅灰 */
+    --card-bg: rgba(255, 255, 255, 0.8); /* 卡片背景：半透明白 */
+    --text-color: #1d1d1f;         /* 【核心】主要文字：深黑 */
+    --text-secondary: #86868b;     /* 次要文字：灰色 */
+    --border-color: rgba(0, 0, 0, 0.1); /* 边框颜色 */
+
+    /* --- 侧边栏特定 --- */
+    --sidebar-bg: #ffffff;
+    --item-hover: #f0f0f0;
+}
+
+/* =========================================
+   2. 夜间模式覆盖 (一键切换)
+   当 body 加上 .night-mode 类时，重新赋值上面的变量
+   ========================================= */
+body.night-mode {
+    --bg-color: #000000;           /* 页面背景：纯黑 */
+    --card-bg: rgba(30, 30, 30, 0.6); /* 卡片背景：深灰磨砂 */
+    --text-color: #ffffff;         /* 【核心】主要文字：纯白 */
+    --text-secondary: #a1a1a6;     /* 次要文字：亮灰 */
+    --border-color: rgba(255, 255, 255, 0.1); /* 边框：微白 */
+
+    /* 侧边栏夜间样式 */
+    --sidebar-bg: #1c1c1e;
+    --item-hover: #2c2c2e;
+}
+
+/* =========================================
+   3. 全局基础样式 & 过渡动画
+   ========================================= */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* 引用统一的变量，而不是写死颜色 */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+
+    /* 【关键】添加过渡效果，让切换不那么生硬 */
+    transition: background-color 0.4s ease, color 0.4s ease;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 强制所有子元素跟随父级颜色，防止遗漏 */
+h1, h2, h3, p, span, div, label, a {
+    color: inherit; /* 继承父级颜色 */
+    transition: color 0.4s ease;
+}
+
+/* =========================================
+   4. 布局与组件样式
+   ========================================= */
+
+/* --- 容器 --- */
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+/* --- 玻璃拟态卡片 --- */
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color); /* 使用变量边框 */
+    transition: all 0.4s ease;
+}
+
+/* --- Logo 特殊处理 (渐变文字) --- */
+.logo-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    /* 默认黑色渐变 */
+    background: linear-gradient(135deg, #1d1d1f 0%, #444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.4s ease;
+}
+
+/* 夜间模式下 Logo 变白渐变 */
+body.night-mode .logo-text {
+    background: linear-gradient(135deg, #ffffff 0%, #a1a1a6 100%) !important;
+}
+
+/* --- 按钮通用 --- */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.btn:active { transform: scale(0.98); }
+
+/* 主按钮 (蓝色) */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white !important; /* 无论日夜，蓝底必须配白字 */
+    animation: breathe 3s infinite ease-in-out;
+}
+
+/* 次级按钮 (白色/透明) */
+.btn-secondary {
+    background-color: var(--card-bg); /* 使用卡片背景色 */
+    color: var(--text-color);         /* 使用主文字色 */
+    border: 1px solid var(--border-color);
+}
+
+/* --- 表单输入框 --- */
+.form-group { margin-bottom: 20px; text-align: left; }
+
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary); /* 使用次要文字色 */
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background-color: rgba(0,0,0,0.05); /* 默认浅灰底 */
+    color: var(--text-color);           /* 文字颜色跟随主题 */
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+/* 夜间模式下的输入框要稍微亮一点，不然看不清 */
+body.night-mode .form-input {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.form-input:focus {
+    background-color: var(--card-bg);
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+/* --- 积分卡片 --- */
+.points-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+}
+
+.points-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* =========================================
+   5. 侧边栏特别修复 (针对左侧列表)
+   ========================================= */
+
+.sidebar {
+    background-color: var(--sidebar-bg); /* 使用变量 */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+    transition: background-color 0.4s ease;
+}
+
+/* 侧边栏里的普通文字 */
+.sidebar-item, .project-item, li {
+    color: var(--text-color); /* 自动跟随黑白切换 */
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* 鼠标悬停效果 */
+.sidebar-item:hover, .project-item:hover {
+    background-color: var(--item-hover);
+}
+
+/* 激活状态 (那个蓝色的 "高等数学") */
+.sidebar-item.active, .project-item.active {
+    background-color: var(--primary-color);
+    color: white !important; /* 强制白字 */
+}
+
+/* 退出按钮区域 */
+#logout-btn {
+    margin-top: auto;
+    background: transparent;
+    border: 1px dashed var(--text-secondary); /* 虚线边框跟随次要色 */
+    color: var(--text-secondary) !important;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s;
+}
+
+#logout-btn:hover {
+    border-color: #ff4d4f;
+    color: #ff4d4f !important;
+}
+
+/* =========================================
+   6. 动画
+   ========================================= */
+@keyframes breathe {
+    0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(0, 122, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
+}

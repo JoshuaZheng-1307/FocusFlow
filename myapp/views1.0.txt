@@ -1,0 +1,97 @@
+# myapp/views.py
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from .forms import RegisterForm
+
+def home(request):
+    """公共主页"""
+    return render(request, 'myapp/home.html')
+
+def register(request):
+    """注册视图"""
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            # 【关键点】注册成功后跳转到 index (即 dashboard)
+            return redirect('myapp:index')
+    else:
+        form = RegisterForm()
+    return render(request, 'myapp/register.html', {'form': form})
+
+@login_required
+def index_view(request):
+    """登录后首页 (对应 dashboard/)"""
+    # ... 这里是你之前的模拟数据代码 ...
+    context = {
+        'user': request.user,
+        # ... 其他数据 ...
+    }
+    # 注意：这里模板文件名要和你实际的文件名一致
+    # 根据你的截图，文件名叫 index(0).html 还是 index.html？
+    # 建议重命名为 index.html
+    return render(request, 'myapp/index.html', context)
+
+def focusflow(request):
+    """学习页面 (对应 focusflow/)"""
+    return render(request, 'myapp/focusflow.html')
+# views.py
+from django.http import JsonResponse
+import json
+
+
+# 假设这是你的用户模型或其他模型
+# from .models import User, Score, Friend, Leaderboard
+
+@login_required  # 确保用户已登录才能访问
+def home_data_api(request):
+    """
+    为首页提供数据的 API 接口
+    对应 URL: /api/home/data/
+    """
+    # --- 1. 获取用户基本信息 ---
+    user = request.user
+    # todo: 这里填入查询用户总积分的逻辑，例如：
+    # total_score = user.profile.total_score
+    total_score = 1500  # 临时假数据
+
+    # --- 2. 获取成就列表 (Top Directions) ---
+    # todo: 这里填入查询用户前几名成就的逻辑
+    top_directions = [
+        {"rank": 1, "name": "Python 编程"},
+        {"rank": 2, "name": "数据分析"},
+        {"rank": 3, "name": "Web 开发"},
+    ]
+
+    # --- 3. 获取好友列表 ---
+    # todo: 这里填入查询好友列表的逻辑
+    friends = [
+        {"name": "好友A", "score": 1200},
+        {"name": "好友B", "score": 950},
+        {"name": "好友C", "score": 800},
+    ]
+
+    # --- 4. 获取排行榜 ---
+    # todo: 这里填入查询排行榜前几名的逻辑
+    leaderboard = [
+        {"user": "Top1玩家", "score": 5000},
+        {"user": "Top2玩家", "score": 4500},
+        {"user": "Top3玩家", "score": 4000},
+    ]
+
+    # --- 5. 组装并返回 JSON 数据 ---
+    data = {
+        "user": {
+            "username": user.username,
+            "email": user.email,
+        },
+        "total_score": total_score,
+        "top_directions": top_directions,
+        "friends": friends,
+        "leaderboard": leaderboard
+    }
+
+    return JsonResponse(data)

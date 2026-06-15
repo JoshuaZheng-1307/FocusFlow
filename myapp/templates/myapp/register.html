@@ -1,0 +1,41 @@
+<!-- myapp/templates/myapp/register.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - FocusFlow</title>
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h1 class="logo-text" style="font-size: 2rem;">Join Us</h1>
+            <p class="slogan" style="margin-bottom: 30px;">开启你的伟大征程</p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- 循环渲染表单字段 -->
+                {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    <!-- 如果有错误，显示错误信息 -->
+                    {% if field.errors %}
+                        <div style="color: #ff3b30; font-size: 0.8rem; margin-top: 5px;">{{ field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">创建账户</button>
+            </form>
+
+            <div style="margin-top: 20px;">
+                <a href="{% url 'myapp:login' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">已有账号？直接登录</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

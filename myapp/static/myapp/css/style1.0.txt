@@ -1,0 +1,263 @@
+/* myapp/static/myapp/css/style.css */
+
+:root {
+    --primary-color: #007aff; /* Apple Blue */
+    --bg-color: #f5f5f7;      /* Apple Light Gray */
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --text-main: #1d1d1f;
+    --text-secondary: #86868b;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden; /* 防止滚动条出现 */
+}
+
+/* --- 容器与卡片 --- */
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    text-align: center;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px); /* 磨砂玻璃效果 */
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* --- FocusFlow Logo --- */
+.logo-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #000 0%, #444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.slogan {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+/* --- 呼吸灯按钮特效 --- */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px 0;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+/* 主按钮（登录/注册提交） */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    /* 呼吸灯动画定义 */
+    animation: breathe 3s infinite ease-in-out;
+}
+
+.btn-primary:hover {
+    transform: scale(1.02);
+}
+
+/* 次级按钮（首页跳转） */
+.btn-secondary {
+    background-color: white;
+    color: var(--text-main);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.btn-secondary:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* --- 表单输入框 --- */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    margin-left: 4px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background-color: #f0f0f2;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    background-color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+/* --- 动画关键帧 --- */
+@keyframes breathe {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(0, 122, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* =========================================
+   侧边栏底部布局与退出按钮 (终极修复版)
+   ========================================= */
+
+/*!* 1. 确保侧边栏是 Flex 容器且占满高度 *!*/
+/*.sidebar {*/
+/*    display: flex !important;       !* 强制开启弹性布局 *!*/
+/*    flex-direction: column !important; !* 垂直排列子元素 *!*/
+/*    height: 100vh !important;       !* 强制占满视口高度 *!*/
+/*    padding: 20px;                  !* 内边距 *!*/
+/*    box-sizing: border-box;         !* 让 padding 不撑大盒子 *!*/
+/*}*/
+
+/*!* 2. 这个 div 会自动占据中间所有的空白区域，把下面的内容挤到底部 *!*/
+/*.sidebar-footer {*/
+/*    margin-top: auto !important;    !* 核心魔法：自动推到底部 *!*/
+/*    width: 100%;*/
+/*    padding-top: 20px;              !* 和上面的列表拉开一点距离 *!*/
+/*}*/
+
+/*!* --- 退出登录按钮 (完全复刻 add-btn 样式) --- *!*/
+/*.btn-logout {*/
+/*    !* 1. 继承 .add-btn 的所有外观属性 *!*/
+/*    width: 100%;              !* 撑满侧边栏宽度 *!*/
+/*    padding: 12px;            !* 保持相同的内边距高度 *!*/
+/*    font-size: 15px;          !* 字体大小一致 *!*/
+/*    border-radius: 8px;       !* 圆角一致 *!*/
+/*    border: none;             !* 去掉边框 *!*/
+/*    cursor: pointer;          !* 鼠标变手型 *!*/
+/*    display: flex;            !* 让图标和文字横向排列 *!*/
+/*    align-items: center;      !* 垂直居中 *!*/
+/*    justify-content: center;  !* 水平居中 *!*/
+/*    gap: 8px;                 !* 图标和文字的间距 *!*/
+
+/*    !* 2. 初始状态：保持和 add-btn 一样的背景色 *!*/
+/*    !* 注意：这里假设你的 add-btn 是绿色的，如果不是，请改成你 add-btn 的 hex 颜色值 *!*/
+/*    background-color: #4CAF50;*/
+/*    color: white;*/
+/*    transition: all 0.3s ease; !* 增加平滑过渡动画 *!*/
+/*}*/
+
+/* 3. 悬停效果：变成红色 (警示色) */
+/* 针对这个特定的按钮设置悬停变深红 */
+/* 针对这个特定的按钮设置悬停变红 */
+/* 当鼠标悬停在这个特定样式的按钮上时 */
+/* 1. 确保默认状态是虚线框（防止被 .add-btn 的绿色覆盖） */
+/*#logout-btn {*/
+/*    background-color: transparent !important;*/
+/*    border: 1px dashed #d9d9d9 !important;*/
+/*    color: rgba(0, 0, 0, 0.45) !important;*/
+/*}*/
+
+/*!* 2. 鼠标悬停时，强制变红 *!*/
+/*#logout-btn:hover {*/
+/*    background-color: #ff4d4f !important; !* 背景变红 *!*/
+/*    border-color: #ff4d4f !important;     !* 边框变红 *!*/
+/*    color: white !important;              !* 文字变白 *!*/
+/*    cursor: pointer;                      !* 鼠标变成小手 *!*/
+/*}*/
+/* 针对 time_location 标签的强制夜间样式 */
+/*body.night-mode .time-location,*/
+/*body.night-mode .time-text,*/
+/*body.night-mode .location-text {*/
+/*    !* 使用 !important 强制覆盖之前的灰色设置 *!*/
+/*    color: var(--night-text) !important;*/
+/*}*/
+/* 夜间模式激活状态 */
+/*body.night-mode {*/
+/*    background-color: var(--night-bg);*/
+
+/*    !* 定义夜间文字颜色变量为纯白 *!*/
+/*    --night-text: #ffffff;*/
+
+/*    !* 设置全局默认颜色 *!*/
+/*    color: var(--night-text);*/
+/*}*/
+
+/*!* 【新增关键代码】强制覆盖所有子元素的颜色 *!*/
+/*!* 当处于夜间模式时，让 body 下的所有常见文本标签都强制使用夜间文字颜色 *!*/
+/*body.night-mode h1,*/
+/*body.night-mode h2,*/
+/*body.night-mode h3,*/
+/*body.night-mode p,*/
+/*body.night-mode span,*/
+/*body.night-mode div,*/
+/*body.night-mode a {*/
+/*    color: var(--night-text) !important;*/
+/*}*/
+/* --- 夜间模式激活状态 --- */
+body.night-mode {
+    background-color: var(--night-bg);
+    /* 这一行会让 body 下大部分默认文字变白 */
+    color: var(--night-text);
+}
+
+/* 【关键】强制修复：让特定元素在夜间模式下也变白 */
+/* 使用 !important 强制覆盖原有的灰色或黑色定义 */
+body.night-mode .status-text,       /* "选择下一个方向..." */
+body.night-mode .btn-primary,       /* "开始学习" 按钮 */
+body.night-mode .points-card p,     /* "累计心流积分" */
+body.night-mode .sidebar-footer span /* 左下角的文字 */ {
+    color: #ffffff !important;
+}
+
+/* 确保积分卡片里的数字也是白色的（或者是你喜欢的亮色） */
+body.night-mode .points-value {
+    color: #ffffff !important;
+}
+
+/* 侧边栏的项目文字也要变白 */
+body.night-mode .project-item {
+    color: #ffffff !important;
+}

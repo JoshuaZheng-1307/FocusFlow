@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFlow - 专注心流</title>
+<style>
+/* =========================================
+   1. 全局变量定义 (统一接口)
+   将所有颜色变量集中在这里，统一管理
+   ========================================= */
+:root {
+    /* --- 基础颜色 --- */
+    --primary-color: #007aff;      /* 主色调 */
+    --accent-hover: #005bb5;       /* 悬停深蓝 */
+    --border-color: rgba(0, 0, 0, 0.08); /* 边框 */
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.06); /* 阴影 */
+
+    /* --- 动态背景与文字 (关键！) --- */
+    --bg-color: #f5f5f7;           /* 页面背景：浅灰 */
+    --card-bg: rgba(255, 255, 255, 0.8); /* 卡片背景：半透明白 */
+    --text-primary: #1d1d1f;       /* 【核心】主要文字：深黑 */
+    --text-secondary: #86868b;      /* 次要文字：灰色 */
+
+    /* --- 侧边栏特定 --- */
+    --sidebar-bg: #ffffff;
+    --item-hover: #f0f0f0;
+}
+
+/* =========================================
+   2. 夜间模式覆盖 (一键切换)
+   当 body 加上 .night-mode 类时，重新赋值上面的变量
+   ========================================= */
+body.night-mode {
+    --bg-color: #000000;           /* 页面背景：纯黑 */
+    --card-bg: rgba(30, 30, 30, 0.9); /* 卡片背景：深灰磨砂 */
+    --text-primary: #ffffff;       /* 【核心】主要文字：纯白 */
+    --text-secondary: #a1a1a6;      /* 次要文字：亮灰 */
+    --border-color: rgba(255, 255, 255, 0.1); /* 边框：微白 */
+
+    /* 侧边栏夜间样式 */
+    --sidebar-bg: #1c1c1e;
+    --item-hover: #2c2c2e;
+}
+
+/* =========================================
+   3. 全局基础样式 & 过渡动画
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 强制所有子元素跟随父级颜色，防止遗漏 */
+h1, h2, h3, p, span, div, label, a, li {
+    color: inherit;
+    transition: color 0.4s ease;
+}
+
+/* =========================================
+   4. 布局与组件样式 (基于你原来的 HTML 结构)
+   ========================================= */
+
+/* --- Layout Structure --- */
+.sidebar {
+    width: 280px;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    z-index: 10;
+    transition: background-color 0.4s ease;
+}
+
+.main-content {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+/* --- Sidebar Elements --- */
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+    transition: color 0.4s ease;
+}
+
+.nav-list {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.nav-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 10px;
+    margin: 2px 10px;
+    font-size: 15px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+    background: rgba(0,0,0,0.04);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.nav-item.mastered {
+    opacity: 0.6;
+}
+
+.nav-item.mastered::after {
+    content: '🏆';
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.add-btn {
+    margin: 10px;
+    padding: 12px;
+    border: 1px dashed var(--border-color);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(0, 113, 227, 0.05);
+}
+
+/* --- Footer Action Bar --- */
+.sidebar-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-top: auto;
+}
+
+.sidebar-footer button {
+    width: 48%;
+    padding: 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 退出学习按钮 - 红色系 */
+.btn-logout {
+    background: transparent;
+    border: 1px dashed rgba(255, 77, 79, 0.5);
+    color: rgba(255, 77, 79, 0.8);
+}
+
+.btn-logout:hover {
+    background: rgba(255, 77, 79, 0.1);
+    border-color: #ff4d4f;
+    color: #cf1322;
+}
+
+/* 夜间模式按钮 - 蓝色系 */
+.btn-night {
+    background: transparent;
+    border: 1px dashed rgba(0, 113, 227, 0.5);
+    color: rgba(0, 113, 227, 0.8);
+}
+
+.btn-night:hover {
+    background: rgba(0, 113, 227, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* --- Main Content Elements --- */
+.timer-display {
+    font-size: 96px;
+    font-weight: 700;
+    letter-spacing: -4px;
+    margin-bottom: 10px;
+    font-variant-numeric: tabular-nums;
+    color: var(--primary-color) !important;
+    transition: color 0.4s ease;
+}
+
+.current-label {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    transition: color 0.4s ease;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+button.action-btn {
+    padding: 12px 28px;
+    border-radius: 980px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-start {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-stop {
+    background: #34c759;
+    color: white;
+    display: none;
+}
+
+.btn-master {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 14px;
+    padding: 10px 20px;
+    display: none;
+}
+
+.points-card {
+    margin-top: 60px;
+    padding: 20px 40px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    transition: background-color 0.4s ease;
+}
+
+.points-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary-color);
+    transition: color 0.4s ease;
+}
+
+.points-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    transition: color 0.4s ease;
+}
+
+/* =========================================
+   5. 夜间模式强制覆盖 (终极修复)
+   针对那些可能遗漏的特定元素
+   ========================================= */
+body.night-mode .logo,
+body.night-mode .current-label,
+body.night-mode .points-label,
+body.night-mode .nav-item,
+body.night-mode .add-btn,
+body.night-mode .btn-master {
+    color: var(--text-primary) !important;
+}
+
+body.night-mode .sidebar {
+    background: var(--card-bg);
+    border-right-color: var(--border-color);
+}
+
+body.night-mode .nav-item:hover {
+    background: var(--item-hover);
+}
+
+body.night-mode .btn-night {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+/* 动画 */
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.timer-display.running {
+    animation: pulse 2s infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">FocusFlow</div>
+    <ul class="nav-list" id="navList"></ul>
+    <button class="add-btn" onclick="addDirection()">+ 添加学习方向</button>
+    <!-- 底部按钮栏 -->
+    <div class="sidebar-footer">
+        <button class="btn-logout" onclick="window.location.href='../dashboard'">退出学习</button>
+        <button class="btn-night" onclick="toggleNightMode()">夜间模式</button>
+    </div>
+</div>
+
+<!-- Main Area -->
+<div class="main-content">
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="current-label" id="currentLabel">选择一个方向开始专注</div>
+    <div class="controls">
+        <button class="action-btn btn-start" id="btnStart" onclick="toggleTimer()">开始学习</button>
+        <button class="action-btn btn-stop" id="btnStop" onclick="stopAndSwitch()">√ 结束并切换</button>
+        <button class="action-btn btn-master" id="btnMaster" onclick="masterDirection()">完全精通</button>
+    </div>
+    <div class="points-card">
+        <div class="points-value" id="pointsDisplay">0</div>
+        <div class="points-label">累计心流积分</div>
+    </div>
+</div>
+
+<script>
+// --- State Management ---
+let directions = JSON.parse(localStorage.getItem('ff_directions')) || [
+    { id: 1, name: 'Python 后端开发', time: 0, mastered: false },
+    { id: 2, name: 'UI/UX 交互设计', time: 0, mastered: false }
+];
+let activeId = null;
+let isRunning = false;
+let interval = null;
+let nextId = directions.length > 0 ? Math.max(...directions.map(d => d.id)) + 1 : 1;
+
+// --- Core Functions ---
+function saveState() {
+    localStorage.setItem('ff_directions', JSON.stringify(directions));
+}
+
+function renderNav() {
+    const navList = document.getElementById('navList');
+    navList.innerHTML = '';
+    directions.forEach(dir => {
+        const li = document.createElement('li');
+        li.className = `nav-item ${dir.id === activeId ? 'active' : ''} ${dir.mastered ? 'mastered' : ''}`;
+        li.innerHTML = `<span>${dir.name}</span><span style="font-size:12px">${formatTime(dir.time)}</span>`;
+        li.onclick = () => selectDirection(dir.id);
+        navList.appendChild(li);
+    });
+    updatePoints();
+}
+
+function addDirection() {
+    const name = prompt("请输入新的学习方向名称：");
+    if (name && name.trim()) {
+        directions.push({ id: nextId++, name: name.trim(), time: 0, mastered: false });
+        saveState();
+        renderNav();
+    }
+}
+
+function selectDirection(id) {
+    if (isRunning) return;
+    const dir = directions.find(d => d.id === id);
+    if (!dir || dir.mastered) return;
+    activeId = id;
+    document.getElementById('currentLabel').innerText = `当前专注：${dir.name}`;
+    document.getElementById('timerDisplay').textContent = formatTime(dir.time);
+    document.getElementById('btnStart').style.display = 'inline-block';
+    document.getElementById('btnStop').style.display = 'none';
+    document.getElementById('btnMaster').style.display = 'none';
+    renderNav();
+}
+
+function toggleTimer() {
+    if (!activeId) return alert("请先选择一个学习方向！");
+    isRunning = true;
+    document.getElementById('btnStart').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'inline-block';
+    document.getElementById('btnMaster').style.display = 'inline-block';
+    document.getElementById('timerDisplay').classList.add('running');
+
+    interval = setInterval(() => {
+        const dir = directions.find(d => d.id === activeId);
+        if (dir) {
+            dir.time++;
+            document.getElementById('timerDisplay').textContent = formatTime(dir.time);
+            saveState();
+            // 更新侧边栏对应项的时间
+            const items = document.querySelectorAll('.nav-item');
+            items.forEach(item => {
+                if(item.classList.contains('active')) {
+                    item.querySelector('span:last-child').textContent = formatTime(dir.time);
+                }
+            });
+            updatePoints();
+        }
+    }, 1000);
+}
+
+function stopAndSwitch() {
+    clearInterval(interval);
+    isRunning = false;
+    document.getElementById('timerDisplay').classList.remove('running');
+    document.getElementById('btnStart').style.display = 'inline-block';
+    document.getElementById('btnStop').style.display = 'none';
+    document.getElementById('btnMaster').style.display = 'none';
+    document.getElementById('currentLabel').innerText = "选择下一个方向继续...";
+    renderNav();
+}
+
+function masterDirection() {
+    if (!activeId) return;
+    if(confirm("确认该方向已完全精通？\n此操作将永久锁定该方向的时间，并获得额外1倍积分奖励！")) {
+        const dir = directions.find(d => d.id === activeId);
+        dir.mastered = true;
+        saveState();
+        stopAndSwitch();
+        alert(`🎉 恭喜！"${dir.name}" 已达成精通成就！`);
+    }
+}
+
+// --- Calculation Logic ---
+function updatePoints() {
+    let totalUnlockedTimeSec = directions.filter(d => !d.mastered).reduce((sum, d) => sum + d.time, 0);
+    let hours = totalUnlockedTimeSec / 3600;
+    let basePoints = 0;
+    if (hours > 0) {
+        basePoints = Math.round(5 * Math.pow(hours, 1.5) + 20 * hours);
+    }
+    let masteryBonus = directions.filter(d => d.mastered).reduce((sum, d) => sum + d.time, 0);
+    const finalPoints = basePoints + masteryBonus;
+    document.getElementById('pointsDisplay').textContent = finalPoints.toLocaleString();
+}
+
+// --- Utility Functions ---
+function formatTime(seconds) {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
+
+// --- 模式切换函数 ---
+function toggleNightMode() {
+    document.body.classList.toggle('night-mode');
+}
+
+function logout() {
+    if (confirm("确定要退出学习吗？")) {
+        window.location.reload();
+    }
+}
+
+// --- 初始化 ---
+renderNav();
+</script>
+</body>
+</html>

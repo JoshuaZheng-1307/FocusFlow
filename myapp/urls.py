@@ -1,0 +1,35 @@
+# myapp/urls.py
+
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from . import views
+
+app_name = 'myapp'
+
+urlpatterns = [
+    # 1. 公共主页 (未登录时访问 /myapp/)
+    path('', views.home, name='home'),
+
+    # 2. 注册
+    path('register/', views.register, name='register'),
+
+    # 3. 登录
+    path('login/', auth_views.LoginView.as_view(template_name='myapp/login.html'), name='login'),
+
+    # 4. 登出
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    # 5. 【核心修改】登录后首页 (Dashboard)
+    # 访问路径变为: /myapp/dashboard/
+    path('dashboard/', views.index_view, name='index'),
+
+    # 6. 学习页面 (Focusflow)
+    # 访问路径变为: /myapp/focusflow/
+    path('focusflow/', views.focusflow, name='focusflow'),
+    # 7. 数据API接口
+    path('api/home/data/', views.home_data_api, name='home_data_api'),
+    # 8. 头像上传接口
+    path('upload-avatar/',views.upload_avatar,name='upload_avatar'),
+    # 9. 【新增】保存学习方向数据的接口
+    path('api/save/direction/', views.save_direction_data, name='save_direction_data'),
+]

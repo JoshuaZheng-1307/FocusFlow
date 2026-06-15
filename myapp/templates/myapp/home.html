@@ -1,0 +1,28 @@
+<!-- myapp/templates/myapp/home.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow</title>
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- Logo 区域 -->
+        <h1 class="logo-text">FocusFlow</h1>
+
+        <!-- 格言区域 -->
+        <p class="slogan">
+            每一秒的前行，<br>都是通往伟大的必经之路。
+        </p>
+
+        <!-- 按钮区域 -->
+        <div style="margin-top: 40px;">
+            <a href="{% url 'myapp:login' %}" class="btn btn-primary">登 录</a>
+            <a href="{% url 'myapp:register' %}" class="btn btn-secondary">注 册</a>
+        </div>
+    </div>
+</body>
+</html>

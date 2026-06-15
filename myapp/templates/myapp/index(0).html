@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focusflow - 首页</title>
+    <style>
+        /* --- 全局样式重置 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6; /* 浅灰背景，护眼 */
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 顶部导航栏 --- */
+        header {
+            background-color: #fff;
+            padding: 15px 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        /* --- 主容器布局 --- */
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 通用卡片样式 */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* --- 左侧栏：个人资料 & 成就 --- */
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 个人资料部分 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+
+        .avatar-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #fff;
+            overflow: hidden;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .avatar-circle:hover {
+            transform: scale(1.05);
+            border-color: #3498db;
+        }
+
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .info-row {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #888;
+            width: 60px;
+        }
+
+        .value {
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .total-score {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        /* 心流成就部分 */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 两列布局 */
+            gap: 15px;
+        }
+
+        .achievement-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .achievement-card.no1 {
+            grid-column: span 2; /* NO.1 占据整行 */
+            background: linear-gradient(135deg, #fff 0%, #fff8e1 100%);
+            border-color: #ffe082;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            background: #333;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .no1 .rank-badge { background: #f1c40f; color: #000; }
+        .no2 .rank-badge { background: #bdc3c7; }
+        .no3 .rank-badge { background: #d35400; }
+
+        /* --- 中间栏：我的好友 --- */
+        .middle-column {
+            flex: 1.2;
+        }
+
+        .friend-list {
+            list-style: none;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 15px;
+        }
+
+        .friend-name {
+            font-weight: 500;
+        }
+
+        /* --- 右侧栏：排行榜 --- */
+        .right-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leaderboard-container {
+            flex: 1;
+            overflow-y: auto; /* 关键：允许垂直滚动 */
+            padding-right: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* 自定义滚动条样式 */
+        .leaderboard-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .leaderboard-container::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 3px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .rank-num {
+            width: 30px;
+            font-weight: bold;
+            color: #888;
+            font-style: italic;
+        }
+
+        .rank-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #eee;
+            margin: 0 15px;
+            border: 2px solid transparent;
+        }
+
+        /* 前三名高亮 */
+        .ranking-item:nth-child(1) .rank-avatar { border-color: #f1c40f; }
+        .ranking-item:nth-child(2) .rank-avatar { border-color: #bdc3c7; }
+        .ranking-item:nth-child(3) .rank-avatar { border-color: #d35400; }
+
+        .rank-info {
+            flex: 1;
+        }
+
+        .rank-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .rank-score {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* 开始学习按钮 */
+        .start-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .start-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 隐藏文件上传 input */
+        #avatar-upload {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部 Logo -->
+    <header>Focusflow</header>
+
+    <div class="container">
+        <!-- 左侧栏：个人信息 & 成就 -->
+        <div class="left-column">
+            <!-- 个人档案卡片 -->
+            <div class="card profile-section">
+                <!-- 头像区域 -->
+                <div class="avatar-container" onclick="document.getElementById('avatar-upload').click()">
+                    <div class="avatar-circle" id="avatar-display">
+                        <!-- 默认显示 F，如果有图片则显示图片 -->
+                        <span>F</span>
+                        <!-- <img src="path/to/image.jpg" alt="Avatar"> -->
+                    </div>
+                    <!-- 隐藏的文件上传控件 -->
+                    <input type="file" id="avatar-upload" accept="image/*" onchange="previewImage(this)">
+                </div>
+
+                <!-- 信息区域 -->
+                <div class="user-info">
+                    <div class="info-row">
+                        <span class="label">用户名</span>
+                        <span class="value">{{ user.username|default:"User_001" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">邮箱</span>
+                        <span class="value">{{ user.email|default:"user@example.com" }}</span>
+                    </div>
+                    <div class="total-score">
+                        心流积分: {{ total_score|default:"12,580" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 心流成就卡片 -->
+            <div class="card">
+                <h2>心流成就 (Top 3)</h2>
+                <div class="achievements-grid">
+                    <!-- NO.1 -->
+                    <div class="achievement-card no1">
+                        <div class="rank-badge">NO.1</div>
+                        <div>Python 后端开发</div>
+                        <small style="color:#888">积分: 5000</small>
+                    </div>
+                    <!-- NO.2 -->
+                    <div class="achievement-card no2">
+                        <div class="rank-badge">NO.2</div>
+                        <div>前端 Vue.js</div>
+                        <small style="color:#888">积分: 3200</small>
+                    </div>
+                    <!-- NO.3 -->
+                    <div class="achievement-card no3">
+                        <div class="rank-badge">NO.3</div>
+                        <div>数据结构</div>
+                        <small style="color:#888">积分: 2100</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间栏：我的好友 -->
+        <div class="middle-column card">
+            <h2>我的好友 (3)</h2>
+            <ul class="friend-list">
+                <li class="friend-item">
+                    <div class="friend-avatar"></div>
+                    <div class="friend-name">Alice (在线)</div>
+                </li>
+                <li class="friend-item">
+                    <div class="friend-avatar"></div>
+                    <div class="friend-name">Bob (离线)</div>
+                </li>
+                <li class="friend-item">
+                    <div class="friend-avatar"></div>
+                    <div class="friend-name">Charlie (学习中...)</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 右侧栏：排行榜 & 开始按钮 -->
+        <div class="right-column card">
+            <h2>用户能力榜</h2>
+            <!-- 可滚动的列表区域 -->
+            <div class="leaderboard-container">
+                <!-- 循环生成列表项 -->
+                <div class="ranking-item">
+                    <div class="rank-num">1</div>
+                    <div class="rank-avatar"></div>
+                    <div class="rank-info">
+                        <div class="rank-name">SuperCoder</div>
+                        <div class="rank-score">心流积分: 99,999</div>
+                    </div>
+                </div>
+                <div class="ranking-item">
+                    <div class="rank-num">2</div>
+                    <div class="rank-avatar"></div>
+                    <div class="rank-info">
+                        <div class="rank-name">JavaMaster</div>
+                        <div class="rank-score">心流积分: 88,200</div>
+                    </div>
+                </div>
+                <div class="ranking-item">
+                    <div class="rank-num">3</div>
+                    <div class="rank-avatar"></div>
+                    <div class="rank-info">
+                        <div class="rank-name">DataWhiz</div>
+                        <div class="rank-score">心流积分: 75,400</div>
+                    </div>
+                </div>
+                <!-- 更多数据用于演示滚动 -->
+                <div class="ranking-item"><div class="rank-num">4</div><div class="rank-avatar"></div><div class="rank-info"><div class="rank-name">User A</div><div class="rank-score">50,000</div></div></div>
+                <div class="ranking-item"><div class="rank-num">5</div><div class="rank-avatar"></div><div class="rank-info"><div class="rank-name">User B</div><div class="rank-score">45,000</div></div></div>
+                <div class="ranking-item"><div class="rank-num">6</div><div class="rank-avatar"></div><div class="rank-info"><div class="rank-name">User C</div><div class="rank-score">40,000</div></div></div>
+                <div class="ranking-item"><div class="rank-num">7</div><div class="rank-avatar"></div><div class="rank-info"><div class="rank-name">User D</div><div class="rank-score">35,000</div></div></div>
+                <div class="ranking-item"><div class="rank-num">8</div><div class="rank-avatar"></div><div class="rank-info"><div class="rank-name">User E</div><div class="rank-score">30,000</div></div></div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <a href="/study/" class="start-btn">开始学习</a>
+        </div>
+    </div>
+
+    <script>
+        // 简单的 JS 用于预览上传的头像
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var avatarDiv = document.getElementById('avatar-display');
+                    // 清空原来的 "F"，插入图片
+                    avatarDiv.innerHTML = '<img src="' + e.target.result + '" alt="Avatar">';
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
