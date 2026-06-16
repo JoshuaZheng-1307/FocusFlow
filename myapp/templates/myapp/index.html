@@ -39,6 +39,17 @@
         .start-btn { background-color: #333; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 18px; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; }
         .start-btn:hover { transform: scale(1.05); background-color: #000; }
         #file-upload { display: none; }
+
+        /* --- 针对 time_location 标签的样式修复 --- */
+        time_location {
+            display: block;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #eee;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -48,26 +59,20 @@
             <div class="profile-card">
                 <!-- 头像区域 -->
                 <div class="avatar-container" style="cursor: pointer;" onclick="document.getElementById('avatarInput').click()">
-                    <!-- 修复：确保 img 标签存在且有默认 src -->
                     <img id="currentAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Avatar">
                 </div>
-                <!-- 修复：添加 hidden 的 file input -->
                 <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">
 
                 <div class="user-info">
-                    <!-- 修复：为 input 添加 id，方便 JS 操作 -->
-                    <input type="text" id="js-username" value="{{ user.username }}" readonly>
-                    <input type="text" id="js-email" value="{{ user.email }}" readonly>
+                    <input type="text" id="js-username" readonly>
+                    <input type="text" id="js-email" readonly>
                     <div style="margin-top: 10px; font-size: 14px; color: #666;">
                         心流积分：<strong id="js-score">0</strong>
                     </div>
                 </div>
 
-                <!-- 修复：使用 <time_location> 标签包裹时间和地点 -->
-                <time_location style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; font-size: 13px; color: #555;">
-                    <div>当前时间：<span id="js-current-time">加载中...</span></div>
-                    <div>当前地点：<span id="js-current-location">定位中...</span></div>
-                </time_location>
+                <!-- time_location 标签：清空所有内部内容，完全由 JS 填充 -->
+                <time_location id="js-time-location"></time_location>
             </div>
 
             <!-- 成就系统 -->
@@ -113,53 +118,88 @@
         // 2. 核心业务逻辑
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. 获取左侧区域的 DOM 元素
-            const leftAvatarImg = document.getElementById('currentAvatar');
-            const leftUsernameEl = document.getElementById('js-username');
-            const leftEmailEl = document.getElementById('js-email');
-            const scoreEl = document.getElementById('js-score');
-            const timeEl = document.getElementById('js-current-time');
-            const locationEl = document.getElementById('js-current-location');
+            console.log("🚀 页面初始化开始");
 
-            // --- A. 设置动态时间地点 ---
-            // 如果你有具体的获取逻辑，替换这里的字符串
-            const currentTime = "2026-06-16 星期二";
-            const currentLocation = "北京市 北京市";
+            // 1. 获取 time_location 容器
+            const timeLocationContainer = document.getElementById('js-time-location');
 
-            if (timeEl) timeEl.innerText = currentTime;
-            if (locationEl) locationEl.innerText = currentLocation;
+            // --- A. 直接写死并注入内容 ---
+            // 定义你要求的内容
+            const FIXED_TIME = "2026-06-16 星期二";
+            const FIXED_LOCATION = "北京市 北京市";
 
-            // --- B. 获取首页数据 ---
+            // 直接设置整个标签的 HTML 内容
+            // 这种写法最暴力也最有效，不管之前是什么，现在直接变成下面这段代码
+            if (timeLocationContainer) {
+                timeLocationContainer.innerHTML = `
+                    <div>当前时间：${FIXED_TIME}</div>
+                    <div>当前地点：${FIXED_LOCATION}</div>
+                `;
+                console.log("✅ 时间地点已强制写入");
+            }
+
+            // --- B. 获取首页数据 (其余逻辑保持不变) ---
             fetch('/api/home/data/')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {
-                    console.log("首页数据加载成功:", data);
+                    console.log("✅ 数据获取成功:", data);
 
-                    // --- 【关键修复】更新左侧个人信息 ---
-                    // 兼容 data.user_info 和 data.user 两种结构
-                    const userInfo = data.user_info || data.user;
+                    // --- 更新个人信息 ---
+const userInfo = data.user || data.user_info;
+if (userInfo) {
+    // 1. 更新用户名和邮箱
+    const usernameEl = document.getElementById('js-username');
+    const emailEl = document.getElementById('js-email');
+    if (usernameEl) usernameEl.value = userInfo.username || '';
+    if (emailEl) emailEl.value = userInfo.email || '';
 
-                    if (userInfo) {
-                        // 更新 <input> 标签的 value (不是 innerText)
-                        if (leftUsernameEl) leftUsernameEl.value = userInfo.username;
-                        if (leftEmailEl) leftEmailEl.value = userInfo.email;
+    // 2. 【核心修复】更新头像
+    // 2. 【核心修复】更新头像
+const avatarImg = document.getElementById('currentAvatar');
+if (avatarImg) {
+    // 兼容后端返回 avatar 或 avatar_url 两种字段名
+    const rawSrc = userInfo.avatar || userInfo.avatar_url;
 
-                        // 更新头像
-                        if (leftAvatarImg && userInfo.avatar_url) {
-                            // 加时间戳防止缓存
-                            leftAvatarImg.src = userInfo.avatar_url + '?t=' + new Date().getTime();
-                        }
+    if (rawSrc) {
+        let finalSrc = rawSrc;
+
+        // --- 核心修复逻辑开始 ---
+        // 1. 如果已经是 http 开头的完整链接（比如图床），就不动它
+        if (!rawSrc.startsWith('http')) {
+            // 2. 如果是 /media/... 开头（绝对路径），去掉开头的斜杠变成 media/...
+            //    这样配合下面的 ../ 就能正确回退一级目录去找 media 文件夹
+            if (rawSrc.startsWith('/')) {
+                finalSrc = rawSrc.substring(1);
+            }
+
+            // 3. 【关键一步】加上 ../
+            //    因为你在 dashboard/ 页面，媒体文件通常在上一级目录的 media/ 下
+            //    所以拼接后变成: ../media/avatars/xxx.jpg
+            finalSrc = '../../' + finalSrc;
+        }
+        // --- 核心修复逻辑结束 ---
+
+        // 加上时间戳，彻底防止浏览器缓存旧头像
+        avatarImg.src = finalSrc + '?t=' + new Date().getTime();
+
+        console.log("🖼️ 左侧头像已更新为:", finalSrc);
+    } else {
+        // 如果没有头像数据，使用默认图
+        // 注意：这里最好也用相对路径或者确认这个静态资源路径是对的
+        avatarImg.src = '../static/myapp/images/default-avatar.png';
+    }
+    }
+}
+
+                    // --- 更新积分 ---
+                    if (document.getElementById('js-score') && data.total_score !== undefined) {
+                        document.getElementById('js-score').textContent = data.total_score;
                     }
 
-                    // --- C. 更新积分 ---
-                    if (scoreEl && data.total_score !== undefined) {
-                        scoreEl.innerText = data.total_score;
-                    }
-
-                    // --- D. 渲染学习方向 ---
+                    // --- 渲染学习方向 ---
                     const friendList = document.getElementById('js-friend-list');
                     const directions = data.directions || [];
                     friendList.innerHTML = '';
@@ -169,15 +209,15 @@
                         div.innerHTML = `
                             <div class="friend-avatar"></div>
                             <div class="friend-details">
-                                <h4>${dir.name}</h4>
+                                <h4>${dir.name || '未知方向'}</h4>
                                 <p>时长: ${formatTime(dir.time_seconds)} | 积分: ${dir.score}</p>
                             </div>
                         `;
                         friendList.appendChild(div);
                     });
-                    document.getElementById('js-friend-count').innerText = directions.length;
+                    document.getElementById('js-friend-count').textContent = directions.length;
 
-                    // --- E. 渲染排行榜 ---
+                    // --- 渲染排行榜 ---
                     const leaderboardList = document.getElementById('js-leaderboard-list');
                     const users = data.leaderboard || [];
                     leaderboardList.innerHTML = '';
@@ -196,7 +236,7 @@
                     });
                 })
                 .catch(error => {
-                    console.error('获取首页数据失败:', error);
+                    console.error('❌ 数据加载失败:', error);
                 });
         });
 
@@ -207,7 +247,6 @@
             const file = input.files[0];
             if (!file) return;
 
-            // 检查文件类型
             if (!file.type.match('image.*')) {
                 alert('请选择有效的图片文件');
                 return;
@@ -224,13 +263,10 @@
                 }
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`服务器错误: ${response.status} ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`服务器错误: ${response.status}`);
                 return response.json();
             })
             .then(data => {
-                console.log("后端返回数据:", data);
                 if (data.status === 'success') {
                     const img = document.getElementById('currentAvatar');
                     if (img) {
@@ -238,11 +274,11 @@
                     }
                     alert('头像上传成功！');
                 } else {
-                    throw new Error(data.message || '上传逻辑失败');
+                    throw new Error(data.message || '上传失败');
                 }
             })
             .catch(error => {
-                console.error('上传捕获异常:', error);
+                console.error('上传失败:', error);
                 alert('上传失败: ' + error.message);
             });
         }
