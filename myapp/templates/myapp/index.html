@@ -61,7 +61,7 @@
             <div class="profile-card">
                 <!-- 头像区域 -->
                 <div class="avatar-container" style="cursor: pointer;" onclick="document.getElementById('avatarInput').click()">
-                    <img id="currentAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Avatar">
+                    <img id="currentAvatar" class="avatar-img" src='https://cdn-icons-png.flaticon.com/512/847/847969.png' alt="Avatar">
                 </div>
                 <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">
                 <div class="user-info">
@@ -160,22 +160,39 @@
                     if (emailEl) emailEl.value = backendUserInfo.email || '';
 
                     // 2. 更新头像
-                    const avatarImg = document.getElementById('currentAvatar');
-                    if (avatarImg) {
-                        const rawSrc = backendUserInfo.avatar || backendUserInfo.avatar_url;
-                        if (rawSrc) {
-                            let finalSrc = rawSrc;
-                            if (!rawSrc.startsWith('http')) {
-                                if (rawSrc.startsWith('/')) {
-                                    finalSrc = rawSrc.substring(1);
-                                }
-                                finalSrc = '../../' + finalSrc;
-                            }
-                            avatarImg.src = finalSrc + '?t=' + new Date().getTime();
-                        } else {
-                            avatarImg.src = '../static/myapp/images/default-avatar.png';
-                        }
-                    }
+                    // --- 【修复开始】替换第 163-172 行的代码 ---
+
+// 1. 先获取 HTML 中的图片元素 (如果上面没写，这里必须写)
+const avatarImgElement = document.getElementById('currentAvatar');
+
+// 2. 定义默认头像链接
+const defaultAvatarUrl = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+// 3. 获取后端返回的头像路径
+// 注意：根据你之前的截图，可能是 data.user.avatar 或 data.avatar，请根据实际情况调整
+let rawSrc = backendUserInfo.avatar || backendUserInfo.avatar_url;
+
+// 4. 核心判断逻辑
+if (rawSrc && avatarImgElement) {
+    // 只有当有数据且找到了图片元素时才处理
+    let finalSrc = rawSrc;
+
+    // 如果不是完整的 http 链接，则拼接路径
+    if (!finalSrc.startsWith('http')) {
+        if (finalSrc.startsWith('/')) {
+            finalSrc = finalSrc.substring(1);
+        }
+        finalSrc = '../../' + finalSrc;
+    }
+
+    // 加上时间戳防止缓存 (注意这里是 Date，不是 imge)
+    avatarImgElement.src = finalSrc + '?t=' + new Date().getTime();
+} else {
+    // 如果没有数据，或者找不到元素，使用默认图
+    if (avatarImgElement) {
+        avatarImgElement.src = defaultAvatarUrl;
+    }
+}
 
                     // 【修改点 1 续】将后端数据赋值给全局变量
                     userInfo = backendUserInfo;
