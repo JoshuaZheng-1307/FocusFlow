@@ -1,20 +1,22 @@
 # myapp/views.py
-
+import os
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from .forms import RegisterForm # 确保你有一个 RegisterForm
-from .models import UserProfile, LearningDirection # 导入模型
+from django.views.decorators.csrf import csrf_exempt
+from .models import UserProfile, LearningDirection
 from django.db.models import Sum
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_POST
 import json
+
 
 def home(request):
     """公共主页"""
     return render(request, 'myapp/home.html')
+
 
 def register(request):
     """注册视图"""
@@ -23,31 +25,31 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            # 【关键点】注册成功后跳转到 index (即 dashboard)
             return redirect('myapp:index')
     else:
         form = RegisterForm()
     return render(request, 'myapp/register.html', {'form': form})
 
+
 @login_required
 def index_view(request):
-    """登录后首页"""
+    """登录后首页 - 增加了积分数据查询"""
     # 获取用户的所有学习方向
     directions = request.user.directions.all()
+
+    # 获取用户的积分信息
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     return render(request, 'myapp/index.html', {
-        'directions': directions
+        'directions': directions,
+        'total_score': profile.total_score  # 将积分传给前端
     })
 
+
 def focusflow(request):
-    """学习页面 (对应 focusflow/)"""
+    """学习页面"""
     return render(request, 'myapp/focusflow.html')
-# views.py
-from django.http import JsonResponse
-import json
 
-
-# 假设这是你的用户模型或其他模型
-# from .models import User, Score, Friend, Leaderboard
 
 # --- API 接口：获取真实数据 ---
 @login_required
@@ -55,13 +57,11 @@ def home_data_api(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user)
 
-    # --- 1. 计算单个学习方向的积分 (用于 Index 成就展示) ---
-    # 逻辑：未锁定方向按公式算分，已锁定方向按秒数算分
+    # --- 1. 计算单个学习方向的积分 ---
     direction_data = []
     for d in user.directions.all():
-        # 这里的积分计算逻辑复用 focusflow 的规则
         if d.mastered:
-            score = d.time_seconds  # 精通后按秒数算
+            score = d.time_seconds
         else:
             hours = d.time_seconds / 3600
             if hours > 0:
@@ -73,12 +73,11 @@ def home_data_api(request):
             "name": d.name,
             "time_seconds": d.time_seconds,
             "mastered": d.mastered,
-            "score": score  # 增加 score 字段
+            "score": score
         })
 
-    # --- 2. 获取全局排行榜数据 (所有用户按总积分排序) ---
-    # 这里假设总积分存储在 UserProfile.total_score 中
-    leaderboard = UserProfile.objects.select_related('user').order_by('-total_score')[:10]  # 取前10
+    # --- 2. 获取全局排行榜数据 ---
+    leaderboard = UserProfile.objects.select_related('user').order_by('-total_score')[:10]
     leaderboard_data = []
     for item in leaderboard:
         leaderboard_data.append({
@@ -95,27 +94,63 @@ def home_data_api(request):
             "avatar": profile.avatar.url if profile.avatar else None,
         },
         "total_score": profile.total_score,
-        "directions": direction_data,  # 现在包含积分
-        "leaderboard": leaderboard_data,  # 新增排行榜数据
+        "directions": direction_data,
+        "leaderboard": leaderboard_data,
         "friends": [],
     }
     return JsonResponse(data)
-# --- 头像上传处理 ---
+
+
+# --- 头像上传处理 (已修复) ---
 @login_required
+@require_POST
+# 建议加上 csrf_exempt 以排除 CSRF 导致的 403 错误返回 HTML 的问题
+# 如果你的项目对安全性要求极高，建议在前端 JS 中携带 csrftoken，而不是用这个装饰器
+@csrf_exempt
 def upload_avatar(request):
-    if request.method == 'POST' and request.FILES.get('avatar'):
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
-        # 如果已有头像，删除旧文件 (可选，需要导入 os)
-        if profile.avatar:
-            if os.path.isfile(profile.avatar.path):
-                os.remove(profile.avatar.path)
-        profile.avatar = request.FILES['avatar']
-        profile.save()
-        return JsonResponse({'status': 'success', 'avatar_url': profile.avatar.url})
-    return JsonResponse({'status': 'error'})
+    if request.method == 'POST':
+        # 1. 检查是否有文件
+        if 'avatar' in request.FILES:
+            avatar_file = request.FILES['avatar']
 
+            # 2. 获取当前用户
+            user = request.user
+            profile, created = UserProfile.objects.get_or_create(user=user)
 
-# --- 新增：保存单次学习数据的 API ---
+            # 3. 保存文件逻辑
+            try:
+                # 如果你想覆盖旧头像，先删除旧的（可选）
+                if profile.avatar and os.path.isfile(profile.avatar.path):
+                    os.remove(profile.avatar.path)
+
+                # 保存新头像
+                profile.avatar = avatar_file
+                profile.save()
+
+                # 4. 【关键点】构建返回的 URL
+                # 确保这里生成的 URL 是浏览器可以直接访问到的
+                # 如果 settings.MEDIA_URL 配置正确，直接用 profile.avatar.url 即可
+                avatar_url = profile.avatar.url
+
+                return JsonResponse({
+                    'status': 'success',
+                    'message': '上传成功',
+                    'avatar_url': avatar_url
+                })
+
+            except Exception as e:
+                print(f"上传出错: {e}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                }, status=500)
+        else:
+            return JsonResponse({'status': 'error', 'message': '未检测到文件'}, status=400)
+
+    # 如果不是 POST 请求，也返回 JSON，防止返回 HTML 页面
+    return JsonResponse({'status': 'error', 'message': '无效请求'}, status=405)
+
+# --- 保存学习数据 ---
 @login_required
 def save_direction_data(request):
     if request.method == 'POST':
@@ -125,22 +160,17 @@ def save_direction_data(request):
             time_seconds = data.get('time')
             mastered = data.get('mastered', False)
 
-            # 更新数据库
-            direction, created = LearningDirection.objects.get_or_create(
+            direction, created = LearningDirection.objects.update_or_create(
                 user=request.user,
-                id=dir_id
+                id=dir_id,
+                defaults={
+                    'time_seconds': time_seconds,
+                    'mastered': mastered
+                }
             )
-            # 如果是新记录或者时间变多了，更新时间
-            if time_seconds > direction.time_seconds:
-                direction.time_seconds = time_seconds
-                direction.mastered = mastered
-                direction.save()
 
-            # 更新用户总积分 (简单累加，或者根据你的规则重新计算)
-            # 这里简单示例：直接加
+            # 重新计算总积分
             profile, _ = UserProfile.objects.get_or_create(user=request.user)
-            # profile.total_score += (time_seconds - direction.time_seconds) # 精确增量
-            # 简单粗暴：重新计算总分
             unlocked_time = sum([d.time_seconds for d in request.user.directions.filter(mastered=False)])
             mastery_bonus = sum([d.time_seconds for d in request.user.directions.filter(mastered=True)])
             hours = unlocked_time / 3600

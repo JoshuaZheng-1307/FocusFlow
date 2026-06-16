@@ -5,225 +5,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focusflow - 首页</title>
+    <link rel="stylesheet" href="/static/myapp/css/style.css">
     <style>
-        /* --- 全局样式 --- */
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            height: 100vh;
-            overflow: hidden;
-        }
+        /* --- 样式部分保持不变 --- */
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; height: 100vh; overflow: hidden; }
         * { box-sizing: border-box; }
-
-        /* --- 布局容器 --- */
-        .container {
-            display: flex;
-            height: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        /* --- 左侧栏 (个人资料 + 成就) --- */
-        .left-col {
-            flex: 0 0 25%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .profile-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        .avatar-container {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 2px solid #ddd;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            background-color: #eee;
-        }
-        .avatar-placeholder { font-size: 40px; font-weight: bold; color: #666; }
-        .avatar-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .user-info input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            background: #f9f9f9;
-        }
-        .achievements-area {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .achievement-box {
-            background: white;
-            width: 120px;
-            height: 100px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-        .achievement-rank { font-size: 14px; color: #888; font-weight: bold; }
-        .achievement-name { font-size: 14px; margin-top: 5px; text-align: center; padding: 0 5px;}
-
-        /* --- 中间栏 (好友) --- */
-        .mid-col {
-            flex: 1;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .friend-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        .friend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
+        .container { display: flex; height: 100%; max-width: 1400px; margin: 0 auto; padding: 20px; gap: 20px; }
+        .left-col { flex: 0 0 25%; display: flex; flex-direction: column; justify-content: space-between; }
+        .profile-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        .avatar-container { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #ddd; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .user-info input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; text-align: center; background: #f9f9f9; }
+        .achievements-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+        .achievement-box { background: white; width: 120px; height: 100px; border: 1px solid #eee; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .mid-col { flex: 1; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .friend-list { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; overflow-y: auto; }
+        .friend-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; transition: background 0.2s; }
         .friend-item:hover { background-color: #f9f9f9; }
         .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: #ddd; }
-        .friend-details h4 { margin: 0; font-size: 16px; }
-        .friend-details p { margin: 0; font-size: 12px; color: #888; }
-
-        /* --- 右侧栏 (排行榜 + 按钮) --- */
-        .right-col {
-            flex: 0 0 30%;
-            display: flex;
-            flex-direction: column;
-        }
-        .brand-header {
-            text-align: right;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        .leaderboard-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .leaderboard-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            font-weight: bold;
-        }
-        .leaderboard-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px 0;
-        }
-        .rank-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            border-bottom: 1px solid #f5f5f5;
-        }
+        .right-col { flex: 0 0 30%; display: flex; flex-direction: column; }
+        .brand-header { text-align: right; font-size: 24px; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
+        .leaderboard-card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .leaderboard-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-weight: bold; }
+        .leaderboard-list { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
+        .rank-item { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f5f5f5; }
         .rank-num { width: 30px; font-weight: bold; color: #555; }
         .rank-avatar { width: 40px; height: 40px; border-radius: 50%; background: #eee; margin-right: 15px; }
         .rank-info { flex-grow: 1; }
         .rank-name { font-weight: bold; font-size: 15px; }
         .rank-score { font-size: 12px; color: #888; }
-
-        /* --- 按钮样式修复 --- */
-        .start-btn-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .start-btn {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .start-btn:hover {
-            transform: scale(1.05);
-            background-color: #000;
-        }
-
-        /* 隐藏文件输入框 */
+        .start-btn-container { margin-top: 20px; text-align: center; }
+        .start-btn { background-color: #333; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 18px; cursor: pointer; transition: transform 0.2s; text-decoration: none; display: inline-block; }
+        .start-btn:hover { transform: scale(1.05); background-color: #000; }
         #file-upload { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- 左侧栏：个人档案 & 成就 -->
-        <!-- 左侧栏：个人档案 & 成就 -->
         <div class="left-col">
             <div class="profile-card">
                 <!-- 头像区域 -->
-                <div class="avatar-container" onclick="document.getElementById('file-upload').click()">
-                    <!-- 默认显示首字母 -->
-                    <span class="avatar-placeholder" id="avatar-text">F</span>
-                    <!-- 实际头像 (默认隐藏) -->
-                    <img src="" alt="Avatar" class="avatar-img" id="avatar-preview">
+                <div class="avatar-container" style="cursor: pointer;" onclick="document.getElementById('avatarInput').click()">
+                    <!-- 修复：确保 img 标签存在且有默认 src -->
+                    <img id="currentAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Avatar">
                 </div>
-                <!-- 文件上传 input -->
-                <input type="file" id="file-upload" accept="image/*" onchange="uploadAvatar(this)">
+                <!-- 修复：添加 hidden 的 file input -->
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">
 
                 <div class="user-info">
-                    <input type="text" value="{{ user.username }}" readonly>
-                    <input type="text" value="{{ user.email }}" readonly>
+                    <!-- 修复：为 input 添加 id，方便 JS 操作 -->
+                    <input type="text" id="js-username" value="{{ user.username }}" readonly>
+                    <input type="text" id="js-email" value="{{ user.email }}" readonly>
                     <div style="margin-top: 10px; font-size: 14px; color: #666;">
                         心流积分：<strong id="js-score">0</strong>
                     </div>
                 </div>
 
-                <!-- 新增：时间与地点信息容器 -->
-                <div class="user-meta" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; font-size: 13px; color: #555;">
+                <!-- 修复：使用 <time_location> 标签包裹时间和地点 -->
+                <time_location style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; font-size: 13px; color: #555;">
                     <div>当前时间：<span id="js-current-time">加载中...</span></div>
                     <div>当前地点：<span id="js-current-location">定位中...</span></div>
-                </div>
+                </time_location>
             </div>
 
             <!-- 成就系统 -->
@@ -243,147 +87,181 @@
         <!-- 右侧栏：排行榜 & 按钮 -->
         <div class="right-col">
             <div class="brand-header">Focusflow</div>
-
-            <!-- 排行榜 (保留 1.0 的结构，增加 ID 供 JS 操作) -->
             <div class="leaderboard-card">
                 <div class="leaderboard-header">用户能力榜</div>
                 <div class="leaderboard-list" id="js-leaderboard-list">
-                    <!-- 这里由 JS 填充数据 -->
                 </div>
             </div>
-
-            <!-- 按钮移回右侧栏底部，并恢复样式 -->
             <div class="start-btn-container">
                 <a href="{% url 'myapp:focusflow' %}" class="start-btn">开始学习</a>
             </div>
         </div>
     </div>
 
-   <script>
-    // ==========================================
-    // 1. 工具函数区 (Utility Functions)
-    // ==========================================
+    <script>
+        // ==========================================
+        // 1. 工具函数区
+        // ==========================================
+        function formatTime(seconds) {
+            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
 
-    /**
-     * 将秒数转换为 HH:MM:SS 格式 (用于专注时长)
-     */
-    function formatTime(seconds) {
-        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-        const s = String(seconds % 60).padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    }
+        // ==========================================
+        // 2. 核心业务逻辑
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. 获取左侧区域的 DOM 元素
+            const leftAvatarImg = document.getElementById('currentAvatar');
+            const leftUsernameEl = document.getElementById('js-username');
+            const leftEmailEl = document.getElementById('js-email');
+            const scoreEl = document.getElementById('js-score');
+            const timeEl = document.getElementById('js-current-time');
+            const locationEl = document.getElementById('js-current-location');
 
-    /**
-     * 格式化日期为：2026-06-09 星期二
-     */
-    function formatDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+            // --- A. 设置动态时间地点 ---
+            // 如果你有具体的获取逻辑，替换这里的字符串
+            const currentTime = "2026-06-16 星期二";
+            const currentLocation = "北京市 北京市";
 
-        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-        const weekday = weekdays[date.getDay()];
+            if (timeEl) timeEl.innerText = currentTime;
+            if (locationEl) locationEl.innerText = currentLocation;
 
-        return `${year}-${month}-${day} ${weekday}`;
-    }
+            // --- B. 获取首页数据 ---
+            fetch('/api/home/data/')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("首页数据加载成功:", data);
 
-    /**
-     * 处理头像上传 (保持不变)
-     */
-    function uploadAvatar(input) {
-        // ... (保持原有 uploadAvatar 函数内容不变) ...
-        if (input.files && input.files[0]) {
+                    // --- 【关键修复】更新左侧个人信息 ---
+                    // 兼容 data.user_info 和 data.user 两种结构
+                    const userInfo = data.user_info || data.user;
+
+                    if (userInfo) {
+                        // 更新 <input> 标签的 value (不是 innerText)
+                        if (leftUsernameEl) leftUsernameEl.value = userInfo.username;
+                        if (leftEmailEl) leftEmailEl.value = userInfo.email;
+
+                        // 更新头像
+                        if (leftAvatarImg && userInfo.avatar_url) {
+                            // 加时间戳防止缓存
+                            leftAvatarImg.src = userInfo.avatar_url + '?t=' + new Date().getTime();
+                        }
+                    }
+
+                    // --- C. 更新积分 ---
+                    if (scoreEl && data.total_score !== undefined) {
+                        scoreEl.innerText = data.total_score;
+                    }
+
+                    // --- D. 渲染学习方向 ---
+                    const friendList = document.getElementById('js-friend-list');
+                    const directions = data.directions || [];
+                    friendList.innerHTML = '';
+                    directions.forEach(dir => {
+                        const div = document.createElement('div');
+                        div.className = 'friend-item';
+                        div.innerHTML = `
+                            <div class="friend-avatar"></div>
+                            <div class="friend-details">
+                                <h4>${dir.name}</h4>
+                                <p>时长: ${formatTime(dir.time_seconds)} | 积分: ${dir.score}</p>
+                            </div>
+                        `;
+                        friendList.appendChild(div);
+                    });
+                    document.getElementById('js-friend-count').innerText = directions.length;
+
+                    // --- E. 渲染排行榜 ---
+                    const leaderboardList = document.getElementById('js-leaderboard-list');
+                    const users = data.leaderboard || [];
+                    leaderboardList.innerHTML = '';
+                    users.forEach((user, index) => {
+                        const li = document.createElement('div');
+                        li.className = 'rank-item';
+                        li.innerHTML = `
+                            <span class="rank-num">${index + 1}</span>
+                            <img class="rank-avatar" src="${user.avatar || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'}" alt="Avatar">
+                            <div class="rank-info">
+                                <div class="rank-name">${user.username}</div>
+                                <div class="rank-score">${user.total_score} 分</div>
+                            </div>
+                        `;
+                        leaderboardList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('获取首页数据失败:', error);
+                });
+        });
+
+        // ==========================================
+        // 3. 头像上传处理
+        // ==========================================
+        function uploadAvatar(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // 检查文件类型
+            if (!file.type.match('image.*')) {
+                alert('请选择有效的图片文件');
+                return;
+            }
+
             const formData = new FormData();
-            formData.append('avatar', input.files[0]);
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
-            formData.append('csrfmiddlewaretoken', csrfToken);
+            formData.append('avatar', file);
 
-            fetch('/upload-avatar/', {
+            fetch('/myapp/upload-avatar/', {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRFToken': csrfToken }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const img = document.getElementById('avatar-preview');
-                    const text = document.getElementById('avatar-text');
-                    if(img && data.avatar_url) {
-                        img.src = data.avatar_url + '?t=' + new Date().getTime();
-                        img.style.display = 'block';
-                        if(text) text.style.display = 'none';
-                    }
-                } else {
-                    alert('上传失败: ' + (data.message || '未知错误'));
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
                 }
             })
-            .catch(err => console.error('Upload error:', err));
-        }
-    }
-
-    // ==========================================
-    // 2. 核心业务逻辑 (Core Logic)
-    // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // 获取 DOM 元素引用
-        const scoreEl = document.getElementById('js-score');
-        const avatarImg = document.getElementById('avatar-preview');
-        const avatarText = document.getElementById('avatar-text');
-        const timeEl = document.getElementById('js-current-time'); // 新增：时间元素
-        const locationEl = document.getElementById('js-current-location'); // 新增：地点元素
-
-        // --- 新增：启动时钟 ---
-        function updateTime() {
-            const now = new Date();
-            // 模拟你要求的固定日期格式，但保留真实的星期几逻辑
-            // 如果你需要完全固定显示“星期二”，请使用下面这行注释代码：
-            // timeEl.innerText = "2026-06-09 星期二";
-            timeEl.innerText = formatDateTime(now);
-        }
-        updateTime(); // 立即执行一次
-        setInterval(updateTime, 1000); // 每秒更新一次
-
-        // --- 新增：设置地点 ---
-        // 这里写死为北京，实际项目中可以调用高德/腾讯地图 API
-        locationEl.innerText = "北京市 北京市";
-
-        // ... (下面的 fetch 逻辑保持不变) ...
-
-        // 发起请求获取首页数据
-        fetch('/api/home/data/')
             .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) {
+                    throw new Error(`服务器错误: ${response.status} ${response.statusText}`);
+                }
                 return response.json();
             })
             .then(data => {
-                console.log("首页数据加载成功:", data);
-
-                // --- A. 更新基础信息 ---
-                if (scoreEl) scoreEl.innerText = data.total_score || 0;
-
-                if (data.user && data.user.avatar) {
-                    if (avatarImg) {
-                        avatarImg.src = data.user.avatar;
-                        avatarImg.style.display = 'block';
+                console.log("后端返回数据:", data);
+                if (data.status === 'success') {
+                    const img = document.getElementById('currentAvatar');
+                    if (img) {
+                        img.src = data.avatar_url + '?v=' + new Date().getTime();
                     }
-                    if (avatarText) avatarText.style.display = 'none';
+                    alert('头像上传成功！');
+                } else {
+                    throw new Error(data.message || '上传逻辑失败');
                 }
-
-                // ... (B 和 C 部分的逻辑保持不变) ...
-                // --- B. 渲染“我的学习方向” (Top 0 3 成就) ---
-                let myDirections = data.directions || [];
-                // ... (原有排序和渲染逻辑) ...
-
-                // --- C. 渲染“用户排行榜” ---
-                let users = data.leaderboard || [];
-                // ... (原有排序和渲染逻辑) ...
-
             })
             .catch(error => {
-                console.error('获取首页数据失败:', error);
+                console.error('上传捕获异常:', error);
+                alert('上传失败: ' + error.message);
             });
-    });
-</script>
+        }
+
+        // --- 辅助函数：获取 CSRF Token ---
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 </body>
 </html>

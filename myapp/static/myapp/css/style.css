@@ -148,3 +148,22 @@ body {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.avatar-container {
+    /* 强制指定大小 */
+    width: 100px;   /* 根据你的设计需求调整，比如 80px, 120px */
+    height: 100px;
+
+    /* 保持圆形裁剪 */
+    border-radius: 50%;
+
+    /* 关键属性：防止图片变形，并让它居中填满 */
+    object-fit: cover;
+}
+/* 专门针对头像图片的样式 */
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover; /* 关键：裁剪图片以填满容器 */
+    display: block;
+}
