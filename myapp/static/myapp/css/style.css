@@ -166,4 +166,49 @@ body {
     border-radius: 50%;
     object-fit: cover; /* 关键：裁剪图片以填满容器 */
     display: block;
+    transition: opacity 0.3s ease;
+    /* 确保图片有相对定位，以便放转圈动画 */
+    position: relative;
+}
+/* --- 新增：头像加载与动画样式 --- */
+
+/* 1. 基础过渡效果：让头像变化时不生硬 */
+
+
+/* 2. 加载中状态 (Loading) */
+.avatar-img.loading {
+    opacity: 0.6; /* 变暗一点 */
+    filter: grayscale(80%); /* 变灰一点，表示正在处理 */
+}
+
+/* 利用 ::after 伪元素画一个转圈的圆圈 */
+.avatar-img.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px; /* 垂直居中 */
+    margin-left: -12px; /* 水平居中 */
+    border: 3px solid rgba(255, 255, 255, 0.3); /* 浅色底圈 */
+    border-top-color: #fff; /* 白色高亮圈 */
+    border-radius: 50%;
+    animation: spin 1s linear infinite; /* 旋转动画 */
+    z-index: 10;
+}
+
+/* 3. 定义旋转动画 */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 4. 淡入效果类 */
+.fade-in {
+    animation: fadeInAnim 0.5s forwards;
+}
+
+@keyframes fadeInAnim {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
