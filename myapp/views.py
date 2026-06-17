@@ -104,29 +104,35 @@ def home_data_api(request):
 # --- 新增 API：获取用户的学习数据 ---
 @login_required
 def get_user_data(request):
-    """返回用户的学习方向和积分数据"""
     user = request.user
 
-    # 获取所有学习方向
-    directions = user.directions.all()
-    direction_list = []
-    for d in directions:
-        direction_list.append({
+    # 【核心修复】确保能正确获取该用户的所有方向，不要加任何过滤条件！
+    # 如果你在 models.py 中定义了 related_name='directions'，就用 user.directions
+    # 如果没有定义，默认用 user.learningdirection_set
+    all_directions = LearningDirection.objects.filter(user=user)
+    # 【调试代码】在控制台打印出查到的方向数量和具体内容
+    print(f"[DEBUG] 用户 {user.username} 共有 {all_directions.count()} 个学习方向:")
+
+    data = []
+    for d in all_directions:
+        data.append({
             "id": d.id,
             "name": d.name,
             "time_seconds": d.time_seconds,
             "mastered": d.mastered
         })
 
-    # 获取用户积分
-    profile, created = UserProfile.objects.get_or_create(user=user)
+    # 获取总分...
+    try:
+        profile = user.userprofile
+        total_score = profile.total_score
+    except:
+        total_score = 0
 
-    data = {
-        "directions": direction_list,
-        "total_score": profile.total_score
-    }
-    return JsonResponse(data)
-
+    return JsonResponse({
+        "directions": data,
+        "total_score": total_score
+    })
 # --- 头像上传处理 (已修复) ---
 @login_required
 @require_POST
@@ -190,6 +196,8 @@ def save_direction_data(request):
             time_seconds = data.get('time', 0)
             mastered = data.get('mastered', False)
 
+            new_id = None
+
             if dir_id:
                 # 情况 A: 有 ID -> 更新现有记录
                 direction, created = LearningDirection.objects.update_or_create(
@@ -209,7 +217,7 @@ def save_direction_data(request):
                     time_seconds=time_seconds,
                     mastered=mastered
                 )
-
+                new_id = direction.id
             # 3. 重新计算总积分逻辑保持不变
             profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
@@ -227,7 +235,8 @@ def save_direction_data(request):
 
             return JsonResponse({
                 'status': 'success',
-                'total_score': profile.total_score
+                'total_score': profile.total_score,
+                'new_id': new_id
             })
 
         except Exception as e:

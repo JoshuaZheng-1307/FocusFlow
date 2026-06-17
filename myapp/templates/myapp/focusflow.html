@@ -356,10 +356,7 @@ body.night-mode .btn-night {
 
 <script>
 // --- State Management ---
-let directions = JSON.parse(localStorage.getItem('ff_directions')) || [
-    { id: 1, name: 'Python 后端开发', time: 0, mastered: false },
-    { id: 2, name: 'UI/UX 交互设计', time: 0, mastered: false }
-];
+let directions = [];
 let activeId = null;
 let isRunning = false;
 let interval = null;
@@ -372,6 +369,7 @@ function saveState() {
 
 function renderNav() {
     const navList = document.getElementById('navList');
+    if (!navList) return; // 防止报错
     navList.innerHTML = '';
     directions.forEach(dir => {
         const li = document.createElement('li');
@@ -383,12 +381,51 @@ function renderNav() {
     updatePoints();
 }
 
+// --- 修改后的 addDirection 函数 ---
 function addDirection() {
     const name = prompt("请输入新的学习方向名称：");
     if (name && name.trim()) {
-        directions.push({ id: nextId++, name: name.trim(), time: 0, mastered: false });
-        saveState();
-        renderNav();
+        const newName = name.trim();
+
+        // 1. 立即发送请求给服务器创建（即使是0秒）
+        fetch('/myapp/api/save-direction/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                id: null, // 新建传 null
+                name: newName,
+                time: 0,  // 明确传 0 秒
+                mastered: false
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // 2. 创建成功，获取服务器返回的 ID
+                const newDir = {
+                    id: data.new_id, // 使用服务器分配的 ID
+                    name: newName,
+                    time: 0,
+                    mastered: false
+                };
+
+                // 3. 插入到前端数组
+                directions.push(newDir);
+                saveState(); // 更新本地缓存
+                renderNav(); // 重新渲染
+                selectDirection(newDir.id); // 自动选中
+                console.log(`新方向 "${newName}" (ID: ${newDir.id}) 已保存`);
+            } else {
+                alert("保存失败：" + data.msg);
+            }
+        })
+        .catch(err => {
+            console.error('网络错误，无法保存新方向:', err);
+            alert("网络错误，无法创建新方向");
+        });
     }
 }
 
@@ -406,6 +443,10 @@ function selectDirection(id) {
 }
 
 function toggleTimer() {
+    if (activeId === null && directions.length > 0) {
+         // 如果是刚新建还没保存的，取最后一个
+         activeId = directions[directions.length-1].id;
+    }
     if (!activeId) return alert("请先选择一个学习方向！");
     isRunning = true;
     document.getElementById('btnStart').style.display = 'none';
@@ -455,6 +496,12 @@ function stopAndSwitch() {
                 if (data.status === 'success') {
                     // 更新页面上的总分显示
                     // document.getElementById('pointsDisplay').textContent = data.total_score.toLocaleString();
+                    if (data.new_id && !dir.id) {
+                        console.log(`同步成功：旧ID ${dir.id} -> 新ID ${data.new_id}`);
+                        dir.id = data.new_id; // 更新内存中的 ID
+                                 // 立即保存到 LocalStorage，防止刷新丢失
+                      }
+                    saveState();
                     updatePoints();
                 } else {
                     console.warn('服务器保存未返回成功状态:', data.msg);
@@ -583,8 +630,16 @@ function fetchUserData() {
 
 // --- 页面加载完成后执行 ---
 document.addEventListener('DOMContentLoaded', function() {
-    fetchUserData(); // 加载页面时获取服务器数据
+    const localData = localStorage.getItem('ff_directions');
+    if (localData) {
+        directions = JSON.parse(localData);
+        renderNav(); // 先渲染本地数据，保证速度
+    }
+
+    fetchUserData(); // 随后立即请求服务器进行校准
 });
+// 在 结尾处，确保有这行，或者在 DOMContentLoaded 里
+document.addEventListener('DOMContentLoaded', fetchUserData);
 </script>
 </body>
 </html>
