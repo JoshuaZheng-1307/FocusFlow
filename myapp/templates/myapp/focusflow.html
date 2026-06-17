@@ -546,23 +546,35 @@ function masterDirection() {
 // }
 // --- 修改后的 updatePoints 函数 ---
 function updatePoints() {
-    // 1. 计算未解锁项（未精通）的基础积分
-    // 对应 Python 逻辑: base_score = round(5 * (hours ** 1.5) + 20 * hours)
-    let totalUnlockedTimeSec = directions.filter(d => !d.mastered).reduce((sum, d) => sum + d.time, 0);
-    let hours = totalUnlockedTimeSec / 60;
-    let basePoints = 0;
-    if (hours > 0) {
-        // Math.pow(hours, 1.5) 对应 Python 的 hours ** 1.5
-        basePoints = Math.round(5 * Math.pow(hours, 1.5) + 20 * hours);
+    let totalScore = 0;
+
+    // 遍历每一个学习方向，单独计算积分，模拟后端逻辑
+    directions.forEach(d => {
+        let itemScore = 0;
+
+        if (d.mastered) {
+            // 已精通：直接累加秒数（根据你的描述，这里应该是直接加 time_seconds）
+            itemScore = d.time;
+        } else {
+            // 未精通：套用公式
+            // 注意：这里必须除以 3600 将秒转换为小时，以匹配 Python 的 hours ** 1.5 逻辑
+            let hours = d.time / 60;
+
+            if (hours > 0) {
+                // 核心修改点：在这里对单个项目进行 Math.round 取整
+                itemScore = Math.round(5 * Math.pow(hours, 1.5) + 20 * hours);
+            }
+        }
+
+        // 将计算好的单项积分加入总分
+        totalScore += itemScore;
+    });
+
+    // 更新页面显示
+    const pointsDisplay = document.getElementById('pointsDisplay');
+    if (pointsDisplay) {
+        pointsDisplay.textContent = totalScore.toLocaleString();
     }
-
-    // 2. 计算已解锁项（已精通）的奖励积分
-    // 对应 Python 逻辑: mastery_bonus = sum([d.time_seconds ...])
-    let masteryBonus = directions.filter(d => d.mastered).reduce((sum, d) => sum + d.time, 0);
-
-    // 3. 更新页面显示
-    const finalPoints = basePoints + masteryBonus;
-    document.getElementById('pointsDisplay').textContent = finalPoints.toLocaleString();
 }
 
 // --- Utility Functions ---

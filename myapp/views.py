@@ -50,41 +50,76 @@ def focusflow(request):
     """学习页面"""
     return render(request, 'myapp/focusflow.html')
 
-
+def calculate_direction_score(direction):
+    """根据方向对象计算积分"""
+    if direction.mastered:
+        # 精通项目的逻辑（根据你的描述可能是直接等于时长或其他固定值）
+        return direction.time_seconds
+    else:
+        # 未精通项目逻辑
+        hours = direction.time_seconds / 60  # 注意：这里应该是除以3600得到小时
+        if hours > 0:
+            # 这里的公式需要和你前端 focusflow.js 里的 updatePoints 保持一致
+            score = round(5 * (hours ** 1.5) + 20 * hours)
+            return score
+        else:
+            return 0
 # --- API 接口：获取真实数据 ---
 @login_required
 def home_data_api(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user)
 
-    # --- 1. 计算单个学习方向的积分 ---
+    # --- 1. 计算单个学习方向的积分 & 动态计算总分 ---
     direction_data = []
+    calculated_total_score = 0  # <--- 新增：初始化动态总分变量
+
     for d in user.directions.all():
-        if d.mastered:
-            score = d.time_seconds
-        else:
-            hours = d.time_seconds / 3600
-            if hours > 0:
-                score = round(5 * (hours ** 1.5) + 20 * hours)
-            else:
-                score = 0
+        # 调用统一的计算函数获取分数
+        current_score = calculate_direction_score(d)
+
+        # 累加到总分
+        calculated_total_score += current_score
+
         direction_data.append({
             "id": d.id,
             "name": d.name,
             "time_seconds": d.time_seconds,
             "mastered": d.mastered,
-            "score": score
+            "score": current_score  # 使用计算后的分数
         })
 
-    # --- 2. 获取全局排行榜数据 ---
-    leaderboard = UserProfile.objects.select_related('user').order_by('-total_score')[:10]
+    # --- 2. 获取全局排行榜数据 (修正版) ---
+    # 1. 先获取用户列表（这里为了简单，我们先取前20名的 UserProfile）
+    # 注意：真实项目中如果用户量大，这里需要优化，但现在先保证逻辑正确
+    top_profiles = UserProfile.objects.select_related('user').order_by('-total_score')[:20]
+
     leaderboard_data = []
-    for item in leaderboard:
+
+    for item in top_profiles:
+        # 2. 获取该用户的所有学习方向
+        user_directions = LearningDirection.objects.filter(user=item.user)
+
+        # 3. 初始化该用户的实时总分
+        user_current_score = 0
+
+        # 4. 遍历该用户的所有方向，累加积分
+        for d in user_directions:
+            # 复用之前写好的计算逻辑函数
+            user_current_score += calculate_direction_score(d)
+
+        # 5. 将计算后的新分数加入列表
+        # 注意：这里不再使用 item.total_score，而是使用 user_current_score
         leaderboard_data.append({
             "username": item.user.username,
-            "total_score": item.total_score,
+            "total_score": user_current_score,  # <--- 正确：使用了实时计算的新分数
             "avatar": item.avatar.url if item.avatar else None
         })
+
+    # 6. 在内存中对计算好的新数据进行排序（因为数据库的排序是基于旧数据的）
+    leaderboard_data.sort(key=lambda x: x['total_score'], reverse=True)
+    # 7. 取前 10 名
+    leaderboard_data = leaderboard_data[:10]
 
     # --- 3. 组装数据 ---
     data = {
@@ -93,13 +128,13 @@ def home_data_api(request):
             "email": user.email,
             "avatar": profile.avatar.url if profile.avatar else None,
         },
-        "total_score": profile.total_score,
+        # 【关键修改】不再读取 profile.total_score，而是使用刚刚算出来的 calculated_total_score
+        "total_score": calculated_total_score,
         "directions": direction_data,
         "leaderboard": leaderboard_data,
         "friends": [],
     }
     return JsonResponse(data)
-
 
 # --- 新增 API：获取用户的学习数据 ---
 @login_required
