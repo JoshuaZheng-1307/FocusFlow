@@ -101,6 +101,32 @@ def home_data_api(request):
     return JsonResponse(data)
 
 
+# --- 新增 API：获取用户的学习数据 ---
+@login_required
+def get_user_data(request):
+    """返回用户的学习方向和积分数据"""
+    user = request.user
+
+    # 获取所有学习方向
+    directions = user.directions.all()
+    direction_list = []
+    for d in directions:
+        direction_list.append({
+            "id": d.id,
+            "name": d.name,
+            "time_seconds": d.time_seconds,
+            "mastered": d.mastered
+        })
+
+    # 获取用户积分
+    profile, created = UserProfile.objects.get_or_create(user=user)
+
+    data = {
+        "directions": direction_list,
+        "total_score": profile.total_score
+    }
+    return JsonResponse(data)
+
 # --- 头像上传处理 (已修复) ---
 @login_required
 @require_POST
@@ -155,30 +181,58 @@ def upload_avatar(request):
 def save_direction_data(request):
     if request.method == 'POST':
         try:
+            # 1. 解析前端发来的 JSON 数据
             data = json.loads(request.body)
+
+            # 获取各个字段 (注意：这里要加上 id 的获取)
             dir_id = data.get('id')
-            time_seconds = data.get('time')
+            d_name = data.get('name',"未命名方向")
+            time_seconds = data.get('time', 0)
             mastered = data.get('mastered', False)
 
-            direction, created = LearningDirection.objects.update_or_create(
-                user=request.user,
-                id=dir_id,
-                defaults={
-                    'time_seconds': time_seconds,
-                    'mastered': mastered
-                }
-            )
+            if dir_id:
+                # 情况 A: 有 ID -> 更新现有记录
+                direction, created = LearningDirection.objects.update_or_create(
+                    user=request.user,
+                    id=dir_id,
+                    defaults={
+                        'name': d_name,
+                        'time_seconds': time_seconds,
+                        'mastered': mastered
+                    }
+                )
+            else:
+                # 情况 B: 无 ID (新方向) -> 创建新记录
+                direction = LearningDirection.objects.create(
+                    user=request.user,
+                    name=d_name,
+                    time_seconds=time_seconds,
+                    mastered=mastered
+                )
 
-            # 重新计算总积分
+            # 3. 重新计算总积分逻辑保持不变
             profile, _ = UserProfile.objects.get_or_create(user=request.user)
-            unlocked_time = sum([d.time_seconds for d in request.user.directions.filter(mastered=False)])
-            mastery_bonus = sum([d.time_seconds for d in request.user.directions.filter(mastered=True)])
+
+            # 获取该用户所有的方向进行计算
+            all_directions = LearningDirection.objects.filter(user=request.user)
+
+            unlocked_time = sum([d.time_seconds for d in all_directions if not d.mastered])
+            mastery_bonus = sum([d.time_seconds for d in all_directions if d.mastered])
+
             hours = unlocked_time / 3600
             base_score = round(5 * (hours ** 1.5) + 20 * hours) if hours > 0 else 0
+
             profile.total_score = base_score + mastery_bonus
             profile.save()
 
-            return JsonResponse({'status': 'success', 'total_score': profile.total_score})
+            return JsonResponse({
+                'status': 'success',
+                'total_score': profile.total_score
+            })
+
         except Exception as e:
+            # 打印具体错误到控制台方便调试
+            print(f"Save Error: {e}")
             return JsonResponse({'status': 'error', 'msg': str(e)})
-    return JsonResponse({'status': 'error', 'msg': 'Invalid request'})
+
+    return JsonResponse({'status': 'error', 'msg': 'Invalid request method'})

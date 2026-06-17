@@ -31,5 +31,7 @@ urlpatterns = [
     # 8. 头像上传接口
     path('upload-avatar/',views.upload_avatar,name='upload_avatar'),
     # 9. 【新增】保存学习方向数据的接口
-    path('api/save/direction/', views.save_direction_data, name='save_direction_data'),
+    path('api/get-user-data/', views.get_user_data, name='get_user_data'),
+    path('api/save-direction/', views.save_direction_data, name='save_direction_data'),
+
 ]
